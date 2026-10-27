@@ -12,6 +12,7 @@ Needs a free Groq API key as GROQ_API_KEY (see .env.example).
 from __future__ import annotations
 
 import os
+import streamlit as st
 from typing import List, TypedDict
 
 from dotenv import load_dotenv, find_dotenv
@@ -21,10 +22,26 @@ from langgraph.graph import StateGraph, END
 from schema import Verdict
 from sharks import SHARKS, HOST
 
+# 1. Safely load local .env if it exists (for local testing)
 load_dotenv(find_dotenv(usecwd=True))
 
 # The same model as Weeks 1, 2 and 4 — one model across the whole course.
-MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+# 2. Safely attempt to read from Streamlit secrets, fall back to environment variables
+# openai/gpt-oss-120b does the cleanest structured tool-calling on Groq for this
+# chat+retrieval pattern. Tested on this workload, not assumed — re-test if you
+# swap models: reliability here is task-specific, not a league table.
+# Lighter option: GROQ_MODEL=openai/gpt-oss-20b
+try:
+    groq_api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+    MODEL = st.secrets.get("GROQ_MODEL") or os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+except st.errors.StreamlitSecretNotFoundError:
+    # This runs locally when no secrets.toml file exists
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+
+
+# The same model as Weeks 1, 2 and 4 — one model across the whole course.
+# MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 
 # max_retries: the free Groq tier allows 8000 tokens per MINUTE, and this agent's
