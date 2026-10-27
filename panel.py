@@ -51,7 +51,7 @@ except st.errors.StreamlitSecretNotFoundError:
 # a long run; the Groq SDK honours the retry-after header, so raising this simply
 # waits out the window instead of failing the whole run.
 def _llm(temperature: float = 0.4) -> ChatGroq:
-    return ChatGroq(model=MODEL, temperature=temperature, max_retries=8)
+    return ChatGroq(model=MODEL, temperature=temperature, max_retries=8,api_key=groq_api_key)
 
 
 class State(TypedDict):
